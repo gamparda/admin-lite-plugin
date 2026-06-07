@@ -1,9 +1,12 @@
 package kr.openclaw.adminlite;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -15,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -230,17 +232,52 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
             } catch (NumberFormatException ex) {
                 throw usage("/adm deletechat #<ID>");
             }
-            boolean removed = chatRecords.removeIf(record -> record.id() == id);
-            if (removed) msg(sender, cfg("deletechat-one").replace("%id%", String.valueOf(id)));
-            else msg(sender, cfg("deletechat-not-found"));
+
+            ChatRecord removed = null;
+            synchronized (chatRecords) {
+                for (ChatRecord record : new ArrayList<>(chatRecords)) {
+                    if (record.id() == id) {
+                        removed = record;
+                        chatRecords.remove(record);
+                        break;
+                    }
+                }
+            }
+
+            if (removed != null) {
+                deleteSignedMessageForEveryone(removed);
+                msg(sender, cfg("deletechat-one").replace("%id%", String.valueOf(id)));
+            } else {
+                msg(sender, cfg("deletechat-not-found"));
+            }
             return;
         }
 
-        int before = chatRecords.size();
-        chatRecords.removeIf(record -> record.playerName().equalsIgnoreCase(target));
-        int count = before - chatRecords.size();
-        if (count > 0) msg(sender, cfg("deletechat-player").replace("%player%", target).replace("%count%", String.valueOf(count)));
-        else msg(sender, cfg("deletechat-not-found"));
+        List<ChatRecord> removed = new ArrayList<>();
+        synchronized (chatRecords) {
+            for (ChatRecord record : new ArrayList<>(chatRecords)) {
+                if (record.playerName().equalsIgnoreCase(target)) {
+                    removed.add(record);
+                    chatRecords.remove(record);
+                }
+            }
+        }
+
+        if (!removed.isEmpty()) {
+            removed.forEach(this::deleteSignedMessageForEveryone);
+            msg(sender, cfg("deletechat-player").replace("%player%", target).replace("%count%", String.valueOf(removed.size())));
+        } else {
+            msg(sender, cfg("deletechat-not-found"));
+        }
+    }
+
+    private void deleteSignedMessageForEveryone(ChatRecord record) {
+        if (record.signedMessage() == null) return;
+        Bukkit.getScheduler().runTask(this, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.deleteMessage(record.signedMessage());
+            }
+        });
     }
 
     private void clearChat(CommandSender sender) {
@@ -259,14 +296,15 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent event) {
+    public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         if (muted.contains(player.getUniqueId())) {
             event.setCancelled(true);
             player.sendMessage(color(cfg("mute-deny-message")));
             return;
         }
-        ChatRecord record = new ChatRecord(nextChatId++, player.getUniqueId(), player.getName(), event.getMessage());
+        String plainMessage = PlainTextComponentSerializer.plainText().serialize(event.message());
+        ChatRecord record = new ChatRecord(nextChatId++, player.getUniqueId(), player.getName(), plainMessage, event.signedMessage());
         synchronized (chatRecords) {
             chatRecords.addLast(record);
             trimChatLog();
@@ -371,6 +409,6 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
         return values.stream().filter(value -> value.toLowerCase(Locale.ROOT).startsWith(lower)).collect(Collectors.toList());
     }
 
-    private record ChatRecord(int id, UUID uuid, String playerName, String message) {}
+    private record ChatRecord(int id, UUID uuid, String playerName, String message, SignedMessage signedMessage) {}
     private record SpectateState(Location location, GameMode gameMode, boolean allowFlight, boolean flying) {}
 }
