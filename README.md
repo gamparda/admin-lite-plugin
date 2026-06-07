@@ -8,7 +8,7 @@ Paper 서버용 단순 관리자 도구 플러그인입니다. `/adm` 하나로 
 /adm invsee <플레이어>                 인벤토리 열기
 /adm warn <플레이어> [사유]            단순 경고 전송. 누적 저장 없음
 /adm freeze <플레이어>                 이동 동결 토글
-/adm mute <플레이어>                   채팅 차단
+/adm mute <플레이어> [시간]              채팅 차단. 예: 10s, 5m, 2h, 1d. 생략 시 무기한
 /adm unmute <플레이어>                 채팅 차단 해제
 /adm spectate <플레이어>               관전 시작
 /adm spectate                          관전 종료
@@ -78,3 +78,16 @@ target/AdminLite-1.0.0.jar
 ## 설정
 
 `plugins/AdminLite/config.yml`에서 메시지, 최근 채팅 보관 개수, 채팅 초기화 줄 수 등을 바꿀 수 있습니다.
+
+## 시간 형식
+
+`/adm mute <플레이어> [시간]`에서 시간은 다음 형식을 지원합니다.
+
+```text
+10s / 10초
+5m / 5분
+2h / 2시간
+1d / 1일
+```
+
+단위를 생략하면 분으로 처리합니다. 예: `/adm mute Steve 5` = 5분.

@@ -36,10 +36,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 public final class AdminLitePlugin extends JavaPlugin implements Listener, TabExecutor {
     private final Set<UUID> frozen = new HashSet<>();
-    private final Set<UUID> muted = new HashSet<>();
+    private final Map<UUID, Long> mutedUntil = new HashMap<>();
     private final Map<UUID, SpectateState> spectating = new HashMap<>();
     private final Deque<ChatRecord> chatRecords = new ArrayDeque<>();
     private int nextChatId = 1;
@@ -133,11 +134,19 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
         Player target = requireTarget(args, 1);
         UUID id = target.getUniqueId();
         if (enabled) {
-            muted.add(id);
-            target.sendMessage(color(cfg("mute-on")));
-            msg(sender, cfg("mute-staff-on").replace("%player%", target.getName()));
+            Long until = null;
+            String durationLabel = "무기한";
+            if (args.length >= 3) {
+                long durationMillis = parseDurationMillis(args[2]);
+                until = System.currentTimeMillis() + durationMillis;
+                durationLabel = formatDuration(durationMillis);
+            }
+
+            mutedUntil.put(id, until);
+            target.sendMessage(color(cfg("mute-on").replace("%duration%", durationLabel)));
+            msg(sender, cfg("mute-staff-on").replace("%player%", target.getName()).replace("%duration%", durationLabel));
         } else {
-            muted.remove(id);
+            mutedUntil.remove(id);
             target.sendMessage(color(cfg("mute-off")));
             msg(sender, cfg("mute-staff-off").replace("%player%", target.getName()));
         }
@@ -298,9 +307,9 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        if (muted.contains(player.getUniqueId())) {
+        if (isMuted(player.getUniqueId())) {
             event.setCancelled(true);
-            player.sendMessage(color(cfg("mute-deny-message")));
+            player.sendMessage(color(cfg("mute-deny-message").replace("%remaining%", getMuteRemainingLabel(player.getUniqueId()))));
             return;
         }
         String plainMessage = PlainTextComponentSerializer.plainText().serialize(event.message());
@@ -325,7 +334,7 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
     public void onQuit(PlayerQuitEvent event) {
         UUID id = event.getPlayer().getUniqueId();
         frozen.remove(id);
-        muted.remove(id);
+        // mutedUntil은 제거하지 않는다. 시간 뮤트 중 재접속해도 남은 시간 동안 유지된다.
         spectating.remove(id);
     }
 
@@ -333,12 +342,77 @@ public final class AdminLitePlugin extends JavaPlugin implements Listener, TabEx
         while (chatRecords.size() > chatLogSize) chatRecords.removeFirst();
     }
 
+    private boolean isMuted(UUID uuid) {
+        if (!mutedUntil.containsKey(uuid)) return false;
+        Long until = mutedUntil.get(uuid);
+        if (until == null) return true;
+        if (System.currentTimeMillis() < until) return true;
+        mutedUntil.remove(uuid);
+        return false;
+    }
+
+    private String getMuteRemainingLabel(UUID uuid) {
+        Long until = mutedUntil.get(uuid);
+        if (until == null) return "무기한";
+        long remaining = Math.max(0L, until - System.currentTimeMillis());
+        return formatDuration(remaining);
+    }
+
+    private long parseDurationMillis(String raw) {
+        if (raw == null || raw.isBlank()) throw usage("시간 형식: 10s, 5m, 2h, 1d");
+        String text = raw.trim().toLowerCase(Locale.ROOT);
+        long multiplier;
+        if (text.endsWith("s") || text.endsWith("초")) {
+            multiplier = TimeUnit.SECONDS.toMillis(1);
+            text = text.replaceAll("(s|초)$", "");
+        } else if (text.endsWith("m") || text.endsWith("분")) {
+            multiplier = TimeUnit.MINUTES.toMillis(1);
+            text = text.replaceAll("(m|분)$", "");
+        } else if (text.endsWith("h") || text.endsWith("시간")) {
+            multiplier = TimeUnit.HOURS.toMillis(1);
+            text = text.replaceAll("(h|시간)$", "");
+        } else if (text.endsWith("d") || text.endsWith("일")) {
+            multiplier = TimeUnit.DAYS.toMillis(1);
+            text = text.replaceAll("(d|일)$", "");
+        } else {
+            multiplier = TimeUnit.MINUTES.toMillis(1); // 단위 생략 시 분
+        }
+
+        long amount;
+        try {
+            amount = Long.parseLong(text);
+        } catch (NumberFormatException ex) {
+            throw usage("시간 형식: 10s, 5m, 2h, 1d");
+        }
+        if (amount <= 0) throw usage("시간은 1 이상이어야 합니다.");
+        return amount * multiplier;
+    }
+
+    private String formatDuration(long millis) {
+        long seconds = Math.max(1L, TimeUnit.MILLISECONDS.toSeconds(millis));
+        long days = seconds / 86400;
+        seconds %= 86400;
+        long hours = seconds / 3600;
+        seconds %= 3600;
+        long minutes = seconds / 60;
+        seconds %= 60;
+
+        List<String> parts = new ArrayList<>();
+        if (days > 0) parts.add(days + "일");
+        if (hours > 0) parts.add(hours + "시간");
+        if (minutes > 0) parts.add(minutes + "분");
+        if (seconds > 0 && parts.size() < 2) parts.add(seconds + "초");
+        if (parts.isEmpty()) return "1초";
+        return String.join(" ", parts);
+    }
+
     private void sendHelp(CommandSender sender, String label) {
         msg(sender, "&7─── &bAdminLite 명령어 &7───");
         msg(sender, "&e/" + label + " invsee <플레이어> &7- 인벤토리 열기");
         msg(sender, "&e/" + label + " warn <플레이어> [사유] &7- 단순 경고");
         msg(sender, "&e/" + label + " freeze <플레이어> &7- 이동 동결 토글");
-        msg(sender, "&e/" + label + " mute|unmute <플레이어> &7- 채팅 차단/해제");
+        msg(sender, "&e/" + label + " mute <플레이어> [시간] &7- 채팅 차단. 예: 10s, 5m, 2h, 1d");
+        msg(sender, "&e/" + label + " unmute <플레이어> &7- 채팅 차단 해제");
         msg(sender, "&e/" + label + " spectate [플레이어] &7- 관전 시작/종료");
         msg(sender, "&e/" + label + " tp|tphere <플레이어> &7- 이동/소환");
         msg(sender, "&e/" + label + " broadcast <메시지> &7- 전체 공지");
