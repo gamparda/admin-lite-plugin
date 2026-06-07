@@ -1,0 +1,34 @@
+chat-log-size: 50
+clearchat-lines: 120
+
+general-prefix: '&7[&bAdminLite&7]&f '
+no-permission: '&c권한이 없습니다.'
+player-only: '&c플레이어만 사용할 수 있습니다.'
+player-not-found: '&c플레이어를 찾을 수 없습니다.'
+usage-color: '&e'
+
+warn-message: '&c[경고] &f관리자에게 경고를 받았습니다.'
+warn-reason-format: '&c사유: &f%reason%'
+warn-staff-message: '&a%player%에게 경고를 보냈습니다. &7사유: %reason%'
+warn-default-reason: '사유 없음'
+
+freeze-on: '&c이동이 동결되었습니다.'
+freeze-off: '&a이동 동결이 해제되었습니다.'
+freeze-staff-on: '&a%player%의 이동을 동결했습니다.'
+freeze-staff-off: '&a%player%의 이동 동결을 해제했습니다.'
+freeze-deny-message: '&c현재 이동이 동결되어 있습니다.'
+
+mute-on: '&c채팅이 차단되었습니다.'
+mute-off: '&a채팅 차단이 해제되었습니다.'
+mute-staff-on: '&a%player%의 채팅을 차단했습니다.'
+mute-staff-off: '&a%player%의 채팅 차단을 해제했습니다.'
+mute-deny-message: '&c채팅이 차단되어 있습니다.'
+
+broadcast-format: '&6[공지] &f%message%'
+chatlog-header: '&7─── 최근 채팅 기록 (클릭하여 삭제) ───'
+chatlog-footer: '&7· &c[X]&7 단건 삭제 · 닉네임 클릭: 해당 유저 전체 삭제'
+chatlog-empty: '&7최근 채팅 기록이 없습니다.'
+deletechat-one: '&a#%id% 메시지를 최근 기록에서 삭제했습니다.'
+deletechat-player: '&a%player%의 최근 채팅 기록 %count%개를 삭제했습니다.'
+deletechat-not-found: '&c대상 채팅 기록을 찾지 못했습니다.'
+clearchat-message: '&a채팅창을 정리했습니다.'

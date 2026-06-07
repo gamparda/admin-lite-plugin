@@ -1,0 +1,36 @@
+name: AdminLite
+version: 1.0.0
+main: kr.openclaw.adminlite.AdminLitePlugin
+api-version: '1.20'
+author: OpenClaw
+commands:
+  adm:
+    description: Simple admin tools.
+    usage: /adm <subcommand>
+    permission: adminlite.use
+permissions:
+  adminlite.use:
+    description: Allows using /adm.
+    default: op
+  adminlite.invsee:
+    default: op
+  adminlite.warn:
+    default: op
+  adminlite.freeze:
+    default: op
+  adminlite.mute:
+    default: op
+  adminlite.spectate:
+    default: op
+  adminlite.teleport:
+    default: op
+  adminlite.broadcast:
+    default: op
+  adminlite.chatlog:
+    default: op
+  adminlite.deletechat:
+    default: op
+  adminlite.clearchat:
+    default: op
+  adminlite.reload:
+    default: op
