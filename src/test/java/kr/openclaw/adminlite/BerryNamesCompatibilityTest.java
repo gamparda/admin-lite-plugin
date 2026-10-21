@@ -52,6 +52,13 @@ class BerryNamesCompatibilityTest {
         var names = new PlayerNames(() -> List.of(entry(first, 1, "대장"), entry(second, 2, "대장")));
         assertThrows(IllegalArgumentException.class, () -> names.resolveAlias("대장"));
     }
+    @Test void excludedPlayersKeepTheirNamesWithoutAZeroNumberTarget() {
+        var names = new PlayerNames(() -> List.of(new PlayerNames.Entry(first,0,"Admin","운영자","Admin"), entry(second,1,"베리일")));
+        assertEquals(first,names.resolveAlias("운영자")); assertEquals(first,names.resolveAlias("Admin"));
+        assertNull(names.resolveAlias("#0")); assertEquals(second,names.resolveAlias("#1"));
+        assertTrue(names.suggestions(first,"Admin","#",false).isEmpty());
+        assertEquals("운영자",names.display(first,"Admin"));
+    }
 
     @ParameterizedTest @ValueSource(strings={"menu","info","invsee","endersee","ecsee","warn","freeze","mute","unmute","kick","ban","unban","spectate","spec","tp","tphere","deletechat","delchat"})
     void targetCommandsHaveExplicitPlayerSyntax(String sub) { assertNotNull(AdminTargets.target(sub)); }

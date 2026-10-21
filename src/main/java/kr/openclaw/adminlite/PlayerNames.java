@@ -7,7 +7,7 @@ import java.util.function.Function;
 /** Live, read-only directory. Empty data retains AdminLite's standalone account-name behavior. */
 final class PlayerNames {
     record Entry(UUID uuid, long number, String account, String display, String defaultName) {
-        List<String> aliases() { return List.of(display, defaultName, "#" + number); }
+        List<String> aliases() { return number > 0 ? List.of(display, defaultName, "#" + number) : List.of(display, defaultName); }
     }
     private final Supplier<List<Entry>> source;
     private final Function<UUID, Entry> lookup;
@@ -46,7 +46,7 @@ final class PlayerNames {
         Entry entry = find(uuid);
         if (entry != null) {
             names.add(entry.display()); names.add(entry.defaultName());
-            if (!messageId && prefix.startsWith("#")) names.add("#" + entry.number());
+            if (!messageId && prefix.startsWith("#") && entry.number() > 0) names.add("#" + entry.number());
         }
         if (account != null) names.add(account);
         return names.stream().filter(name -> name.regionMatches(true, 0, prefix, 0, prefix.length())).toList();

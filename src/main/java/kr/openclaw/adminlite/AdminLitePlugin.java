@@ -48,7 +48,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
                     for (UUID uuid : state.expire()) { Player player = Bukkit.getPlayer(uuid); if (player != null) tell(player, "mute-off"); }
                 } catch (Exception e) { getLogger().log(Level.SEVERE, "현재 제재 상태 저장 실패", e); }
             }, 20, 20);
-            getLogger().info("AdminLite 2.2.0 enabled (Paper 26.3 build 206). BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
+            getLogger().info("AdminLite 2.2.1 enabled (Paper 26.3 build 206). BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "AdminLite 시작 실패", e);
             getServer().getPluginManager().disablePlugin(this);

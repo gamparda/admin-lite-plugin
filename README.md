@@ -1,4 +1,6 @@
-# AdminLite 2.2.0
+# AdminLite 2.2.1
+
+BerryNames 1.4.0 순번 제외를 지원합니다. 제외 대상의 지정 이름/실제 ID와 UUID 조회는 유지하며, 존재하지 않는 #0 대상이나 자동완성은 만들지 않습니다.
 
 Paper 26.3 build 206 / Java 25용 1인 운영 관리 플러그인입니다. AdminLite와 InvSee의 관리 기능을 하나의 JAR로 통합했습니다.
 
@@ -59,7 +61,7 @@ BerryNames 1.3.0 이상과 AdminLite 2.2.0을 함께 설치하면 이름 서비�
 
 1. 서버를 종료합니다.
 2. 기존 `admin-lite-2.1.0.jar` 등 이전 AdminLite JAR와 별도 InvSee JAR를 `plugins/` 밖에 보관합니다. 다른 이름의 이전 버전 JAR가 있다면 함께 옮깁니다.
-3. 새 `admin-lite-2.2.0.jar` 하나를 `plugins/`에 넣습니다.
+3. 새 `admin-lite-2.2.1.jar` 하나를 `plugins/`에 넣습니다.
 4. 기존 `plugins/AdminLite/` 폴더는 유지합니다. 기존 설정에 없는 신규 항목은 내장 기본값으로 작동합니다.
 5. 설정 항목 전체가 필요하면 배포 폴더의 맞춤 `config.yml`을 `plugins/AdminLite/config.yml`에 복사합니다. 이 파일은 작업 시 확인한 기존 AdminLite 문구와 값을 유지하며 새 설정을 추가한 것입니다.
 6. 서버를 시작하고 OP 계정으로 `/admin`을 입력합니다.
@@ -169,7 +171,7 @@ BerryNames API가 로컬 Maven 저장소에 없는 다른 PC에서는 호환되�
 ```
 
 컴파일 의존성은 BerryNames API 1.3.0이며 1.3.2에서도 같은 API를 제공합니다. 의존 플러그인의 클래스는 AdminLite JAR에 포함하지 않습니다. Paper API는 26.3.build.206-stable, PacketEvents API는 2.14.0으로 고정합니다. Adventure NBT 5.2.0은 패키지를 변경해 포함합니다.
-결과 파일은 `target/admin-lite-2.2.0.jar`입니다.
+결과 파일은 `target/admin-lite-2.2.1.jar`입니다.
 
 자동 테스트 66개, Paper 26.3-206·BerryNames 1.3.2·PacketEvents 2.14.0에서 실제 로컬 TCP 접속자의 수신 패킷 검증 26개, 재시작 후 유지·복원 검증 3개, 의존 플러그인 없는 단독 실행 검증 4개를 통과했습니다.
 실제 접속 테스트에는 일반 플레이어·OP·늦게 접속하는 OP를 사용했습니다. 베리 이름 변경, 캐릭터 생성 유지, 은신 ON/OFF, 개별 이름 숨김, 기능 재설정, 권한 회수·복구, 재접속을 확인했습니다.
