@@ -1,4 +1,65 @@
-# AdminLite 2.2.1
+# AdminLite 2.3.0
+
+## 2.3.0 치지직 닉네임 필수 화이트리스트 등록
+
+관리자가 화이트리스트를 등록할 때 치지직 닉네임을 빠뜨리지 않도록 하는 절차입니다.
+접속 단계의 별도 인증이나 제한은 추가하지 않습니다. 서버의 `white-list`, `enforce-whitelist`,
+OP 예외 등 접속 허용 정책은 기존 Minecraft 설정을 따릅니다. 플러그인이 자동으로 화이트리스트를
+켜거나 DB 등록 여부를 접속 조건으로 사용하지 않습니다.
+
+```text
+/whitelist add <마크닉네임> <치지직닉네임>
+/whitelist info <마크닉네임>
+/whitelist search <치지직닉네임>
+/whitelist history <마크닉네임> [페이지]
+/whitelist records [페이지]
+/whitelist remove <마크닉네임>
+/whitelist list
+```
+
+예: `/whitelist add MinecraftID 감파르다`. 치지직 닉네임을 생략하거나 공백만 입력하면
+DB와 서버 화이트리스트를 변경하지 않습니다. `minecraft:whitelist`, `adminlite:whitelist`와
+`execute run minecraft:whitelist ...`도 같은 절차를 사용합니다. 일반 플레이어와 콘솔에
+동일하게 적용합니다. 권한은 `adminlite.whitelist`이며 기본 OP입니다. `op-only` 설정도 따릅니다.
+
+처음 등록하는 이용자는 실제 마인크래프트 ID를 입력합니다. `online-mode=true`에서 처음 보는
+계정은 Paper 프로필 API로 비동기 조회하며, 확인 실패/시간 초과 시 등록하지 않습니다.
+이미 알려진 이용자는 실제 ID·UUID·정확한 베리 이름·현재 `#순번`을 사용할 수 있습니다.
+동일 이름이 여러 UUID와 일치하면 UUID를 지정하도록 안내합니다.
+
+등록 DB는 **`plugins/AdminLite/whitelist.db` (SQLite)** 입니다. UUID, 실제 마인크래프트 ID,
+관리자가 입력한 치지직 닉네임, 처리자 이름/UUID, 등록·해제 시각과 시간대를 저장합니다.
+시간은 UTC 밀리초로 보관하며, 기본 표시는 `2026-10-21 23:00:00 +09:00 [Asia/Seoul]`처럼
+초·UTC 오프셋·시간대를 함께 보여줍니다. `whitelist.time-zone` 설정은 이후 기록에 적용되고,
+이미 저장한 기록의 시각과 시간대는 보존합니다. 네이버/치지직 로그인이나 API 키는 필요하지
+않으며, 입력한 치지직 닉네임의 계정 소유 여부를 검증하는 기능은 아닙니다.
+
+- `info`: 해당 UUID의 최근 기록과 실제 서버 화이트리스트 상태를 표시합니다.
+- `search`: 입력한 치지직 닉네임과 **정확히 일치하는 과거·현재 기록**을 최신순으로 조회합니다.
+  공백이 포함된 닉네임도 그대로 입력합니다. 다음 페이지는 `--page=2`를 마지막에 붙입니다.
+- `history`: 해당 마인크래프트 UUID의 등록·갱신·해제 기록을 최신순으로 조회합니다.
+- `records`: 마지막 작업이 등록인 DB 기록을 10개씩 조회합니다. 서버 파일을 외부에서 변경했다면
+  실제 상태는 `info` 또는 `list`로 확인합니다.
+- 이미 등록된 이용자에게 `add`를 다시 실행하면 새 닉네임과 시각을 새 기록으로 남깁니다.
+  이전 닉네임과 등록 시각은 `history`/`search`에 유지합니다.
+- `remove`는 서버 화이트리스트에서 해제하고, DB에는 해제 시각과 처리자를 추가합니다.
+  기존 등록 기록은 삭제하지 않습니다.
+- `list`, `on`, `off`, `reload`는 서버의 화이트리스트 목록·설정을 처리합니다.
+  `on`/`off`는 관리자가 명시적으로 실행했을 때만 서버 설정을 변경합니다.
+
+DB 저장이 성공한 뒤 서버 화이트리스트를 변경합니다. DB 쓰기 실패 시 추가하지 않습니다.
+DB에 기록한 뒤 서버 반영이 중단되면 '반영 대기' 상태로 남기고, 다음 등록/해제·`whitelist reload`·
+서버 재시작 때 다시 적용합니다. 재시도는 새 등록 이력을 만들지 않습니다. DB가 손상되면
+초기화하지 않고 등록 명령을 중단하며, 다른 관리 기능은 유지합니다. 백업은 서버를 종료한 뒤
+`whitelist.db`와 서버의 `whitelist.json`을 함께 보관하세요.
+
+이 기능은 AdminLite가 처리하는 **관리 명령의 입력 절차**입니다. 다른 플러그인의
+`OfflinePlayer.setWhitelisted` API 사용이나 `whitelist.json` 직접 수정까지 감시하지 않습니다.
+실행 중 교체나 서버 전체 `/reload` 대신 정상 종료 후 JAR 하나를 교체하세요.
+
+Paper 26.3-206에서 단위 테스트 89개, 실제 서버 첫 실행 34개와 완전 재시작 12개 검사를
+통과했습니다. 온라인 모드의 외부 프로필 조회·실제 화이트리스트 반영도 5개 항목을 검증했습니다.
+재현용 코드는 [validation/whitelist](validation/whitelist/README.md)에 있습니다.
 
 BerryNames 1.4.0 순번 제외를 지원합니다. 제외 대상의 지정 이름/실제 ID와 UUID 조회는 유지하며, 존재하지 않는 #0 대상이나 자동완성은 만들지 않습니다.
 
@@ -60,8 +121,8 @@ BerryNames 1.3.0 이상과 AdminLite 2.2.0을 함께 설치하면 이름 서비�
 ## 설치
 
 1. 서버를 종료합니다.
-2. 기존 `admin-lite-2.1.0.jar` 등 이전 AdminLite JAR와 별도 InvSee JAR를 `plugins/` 밖에 보관합니다. 다른 이름의 이전 버전 JAR가 있다면 함께 옮깁니다.
-3. 새 `admin-lite-2.2.1.jar` 하나를 `plugins/`에 넣습니다.
+2. 기존 `admin-lite-2.2.1.jar` 등 이전 AdminLite JAR와 별도 InvSee JAR를 `plugins/` 밖에 보관합니다. 다른 이름의 이전 버전 JAR가 있다면 함께 옮깁니다.
+3. 새 `admin-lite-2.3.0.jar` 하나를 `plugins/`에 넣습니다.
 4. 기존 `plugins/AdminLite/` 폴더는 유지합니다. 기존 설정에 없는 신규 항목은 내장 기본값으로 작동합니다.
 5. 설정 항목 전체가 필요하면 배포 폴더의 맞춤 `config.yml`을 `plugins/AdminLite/config.yml`에 복사합니다. 이 파일은 작업 시 확인한 기존 AdminLite 문구와 값을 유지하며 새 설정을 추가한 것입니다.
 6. 서버를 시작하고 OP 계정으로 `/admin`을 입력합니다.

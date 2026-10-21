@@ -1,0 +1,5 @@
+name: WhitelistChecks
+version: 1.0.0
+main: verification.whitelist.WhitelistHarness
+api-version: '26.3'
+depend: [AdminLite, BerryNames]

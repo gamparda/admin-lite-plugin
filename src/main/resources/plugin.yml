@@ -1,11 +1,14 @@
 name: AdminLite
-version: 2.2.1
+version: 2.3.0
 main: kr.openclaw.adminlite.AdminLitePlugin
 api-version: '26.3'
 author: OpenClaw
 description: Personal administration tools with online and offline inventory editing.
 softdepend: [InvSee, BerryNames, packetevents]
 commands:
+  whitelist:
+    description: Manage whitelist registrations with a required CHZZK nickname.
+    permission: adminlite.whitelist
   admin:
     description: Open the administration menu or use administration commands.
     aliases: [adm]
@@ -18,6 +21,8 @@ commands:
     aliases: [ecsee]
     permission: adminlite.invsee
 permissions:
+  adminlite.whitelist:
+    default: op
   adminlite.use:
     default: op
   adminlite.gui:

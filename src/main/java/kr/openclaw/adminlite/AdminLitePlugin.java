@@ -24,6 +24,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
     IdentityVisibility visibility;
     ChatTools chat;
     AdminMenus menus;
+    WhitelistCommands whitelist;
     PlayerNames names = new PlayerNames(List::of);
 
     @Override public void onEnable() {
@@ -38,6 +39,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
             state = new ActiveState(getDataFolder().toPath().resolve("active.yml"));
             staff = new StaffTools(this); chat = new ChatTools(this); configureChat(); editor = new InventoryEditor(this); menus = new AdminMenus(this);
             visibility = new IdentityVisibility(this);
+            whitelist = new WhitelistCommands(this);
             for (var listener : List.of(staff, chat, editor, menus, visibility)) getServer().getPluginManager().registerEvents(listener, this);
             for (String command : List.of("admin", "adm", "invsee", "endersee")) {
                 PluginCommand registered = Objects.requireNonNull(getCommand(command));
@@ -48,7 +50,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
                     for (UUID uuid : state.expire()) { Player player = Bukkit.getPlayer(uuid); if (player != null) tell(player, "mute-off"); }
                 } catch (Exception e) { getLogger().log(Level.SEVERE, "현재 제재 상태 저장 실패", e); }
             }, 20, 20);
-            getLogger().info("AdminLite 2.2.1 enabled (Paper 26.3 build 206). BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
+            getLogger().info("AdminLite 2.3.0 enabled (Paper 26.3 build 206). Whitelist registration database; BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "AdminLite 시작 실패", e);
             getServer().getPluginManager().disablePlugin(this);
@@ -56,6 +58,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
     }
 
     @Override public void onDisable() {
+        if (whitelist != null) try { whitelist.close(); } catch (Exception e) { getLogger().log(Level.SEVERE,"화이트리스트 DB 종료 실패",e); }
         getServer().getServicesManager().unregisterAll(this);
         if (visibility != null) visibility.shutdown();
         if (editor != null) editor.shutdown();
@@ -78,6 +81,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
         disabledFeatures = Set.copyOf(disabled);
         if (chat != null) configureChat();
         if (visibility != null) visibility.refresh();
+        if (whitelist != null) whitelist.configure();
     }
 
     private void configureChat() {

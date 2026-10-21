@@ -1,6 +1,10 @@
 # 기본적으로 OP만 사용합니다. false로 바꾸면 adminlite.* 개별 권한으로 제어합니다.
 op-only: true
 
+# 화이트리스트 등록/해제 기록에 사용할 시간대. 저장된 과거 기록의 시간대는 유지합니다.
+whitelist:
+  time-zone: Asia/Seoul
+
 features:
   gui: true
   player-info: true
