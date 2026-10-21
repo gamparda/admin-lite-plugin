@@ -1,18 +1,32 @@
 name: AdminLite
-version: 1.0.0
+version: 2.2.0
 main: kr.openclaw.adminlite.AdminLitePlugin
-api-version: '1.20'
+api-version: '26.3'
 author: OpenClaw
+description: Personal administration tools with online and offline inventory editing.
+softdepend: [InvSee, BerryNames, packetevents]
 commands:
-  adm:
-    description: Simple admin tools.
-    usage: /adm <subcommand>
+  admin:
+    description: Open the administration menu or use administration commands.
+    aliases: [adm]
     permission: adminlite.use
+  invsee:
+    description: View or edit online and offline player inventories.
+    permission: adminlite.invsee
+  endersee:
+    description: View or edit online and offline ender chests.
+    aliases: [ecsee]
+    permission: adminlite.invsee
 permissions:
   adminlite.use:
-    description: Allows using /adm.
+    default: op
+  adminlite.gui:
+    default: op
+  adminlite.info:
     default: op
   adminlite.invsee:
+    default: op
+  adminlite.invsee.edit:
     default: op
   adminlite.warn:
     default: op
@@ -20,9 +34,19 @@ permissions:
     default: op
   adminlite.mute:
     default: op
+  adminlite.kick:
+    default: op
+  adminlite.ban:
+    default: op
   adminlite.spectate:
     default: op
   adminlite.teleport:
+    default: op
+  adminlite.vanish:
+    default: op
+  adminlite.visibility:
+    default: op
+  adminlite.see-hidden:
     default: op
   adminlite.broadcast:
     default: op

@@ -1,0 +1,64 @@
+{
+  "checks": [
+    "admin initially listed",
+    "Berry alias belongs to original staff team",
+    "admin body entity reaches ordinary client",
+    "visibility menu opens",
+    "combined ON hides tab listing without removing profile",
+    "combined ON hides overhead nametag",
+    "client shadow preserves team color and collision",
+    "admin is also hidden from own tab",
+    "late joining OP sees both hidden",
+    "server scoreboard membership unchanged",
+    "server team name rule unchanged",
+    "ordinary player cannot hide itself",
+    "actual wire contains changed Berry nickname",
+    "Berry rename while hidden stays hidden",
+    "vanish removes admin from ordinary client",
+    "vanish OFF restores body with identity still hidden",
+    "combined OFF restores latest nickname and original team",
+    "original nametag rule restored",
+    "tab-only hide preserves nametag",
+    "name-only hide preserves tab",
+    "feature disable restores original client state",
+    "feature re-enable reapplies preference",
+    "revoked admin permission removes concealment",
+    "restored admin permission reapplies concealment",
+    "reconnect reapplies separate saved toggles",
+    "both settings saved for server restart"
+  ],
+  "final": {
+    "profiles": {
+      "81e6ea0e-6a39-3399-b7ad-0897c5802141": {
+        "listed": true,
+        "name": "Ordinary"
+      },
+      "5ba99099-0550-3784-9d81-75072f05802d": {
+        "listed": true,
+        "name": "베리삼"
+      },
+      "ee260738-4b32-33c3-aed3-456813679e4b": {
+        "listed": false,
+        "name": "새관리대장"
+      }
+    },
+    "packets": 56,
+    "paper": "26.3-206-e13b4b3 (MC: 26.3)",
+    "teams": {
+      "staff": {
+        "visibility": "ALWAYS",
+        "collision": "NEVER",
+        "color": "gold",
+        "members": []
+      },
+      "al_c3960c_7": {
+        "visibility": "NEVER",
+        "collision": "NEVER",
+        "color": "gold",
+        "members": [
+          "새관리대장"
+        ]
+      }
+    }
+  }
+}

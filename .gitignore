@@ -1,7 +1,7 @@
 target/
-*.class
-*.jar
-*.log
-.DS_Store
 .idea/
+*.iml
+*.class
+*.log
 .vscode/
+.DS_Store

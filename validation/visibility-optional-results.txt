@@ -1,0 +1,1 @@
+PASS: standalone load, optional dependency detected, enable gives friendly error, OFF remains usable

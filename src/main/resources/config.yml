@@ -1,11 +1,40 @@
+# 기본적으로 OP만 사용합니다. false로 바꾸면 adminlite.* 개별 권한으로 제어합니다.
+op-only: true
+
+features:
+  gui: true
+  player-info: true
+  warn: true
+  mute: true
+  kick: true
+  ban: true
+  freeze: true
+  spectate: true
+  vanish: true
+  # 관리자 본인의 탭 목록/머리 위 이름 숨김. 개별 ON/OFF는 /admin visibility에서 설정합니다.
+  visibility: true
+  teleport: true
+  inventory: true
+  offline-inventory: true
+  broadcast: true
+  chat: true
+
+# 채팅 관리용 최근 메시지는 메모리에만 보관합니다. 제재 이력은 저장하지 않습니다.
 chat-log-size: 50
 clearchat-lines: 120
+
+# 뮤트 상태에서 차단할 채팅 명령어. 사용 중인 귓속말 플러그인의 별칭도 추가할 수 있습니다.
+# /report 및 /reportchat은 상담을 위해 기본적으로 허용합니다.
+mute-blocked-commands: [msg, w, tell, whisper, me, say, teammsg, tm]
 
 general-prefix: '&7[&bAdminLite&7]&f '
 no-permission: '&c권한이 없습니다.'
 player-only: '&c플레이어만 사용할 수 있습니다.'
-player-not-found: '&c플레이어를 찾을 수 없습니다.'
-usage-color: '&e'
+player-not-found: '&c저장된 플레이어를 찾을 수 없습니다. 정확한 닉네임 또는 UUID를 입력하세요.'
+feature-disabled: '&c설정에서 비활성화된 기능입니다.'
+operation-failed: '&c작업을 완료하지 못했습니다. 서버 콘솔의 오류를 확인하세요.'
+reload-message: '&a설정을 다시 불러왔습니다.'
+input-cancelled: '&7입력을 취소했습니다.'
 
 warn-message: '&c[경고] &f관리자에게 경고를 받았습니다.'
 warn-reason-format: '&c사유: &f%reason%'
@@ -18,17 +47,34 @@ freeze-staff-on: '&a%player%의 이동을 동결했습니다.'
 freeze-staff-off: '&a%player%의 이동 동결을 해제했습니다.'
 freeze-deny-message: '&c현재 이동이 동결되어 있습니다.'
 
-mute-on: '&c채팅이 차단되었습니다. &7기간: %duration%'
+mute-on: '&c채팅이 차단되었습니다. &7기간: %duration% / 사유: %reason%'
 mute-off: '&a채팅 차단이 해제되었습니다.'
 mute-staff-on: '&a%player%의 채팅을 차단했습니다. &7기간: %duration%'
 mute-staff-off: '&a%player%의 채팅 차단을 해제했습니다.'
 mute-deny-message: '&c채팅이 차단되어 있습니다. &7남은 시간: %remaining%'
 
+kick-message: "&c서버에서 추방되었습니다.\n&f사유: %reason%"
+kick-success: '&a%player%을(를) 추방했습니다.'
+ban-message: "&c서버 접속이 차단되었습니다.\n&f기간: %duration%\n사유: %reason%"
+ban-success: '&a%player%의 서버 접속을 차단했습니다. &7기간: %duration%'
+unban-success: '&a%player%의 서버 접속 차단을 해제했습니다.'
+
+spectate-start: '&a%player% 관전을 시작했습니다. &7종료: /admin spectate'
+spectate-end: '&a관전을 종료하고 원래 위치와 게임 모드로 돌아왔습니다.'
+vanish-on: '&a은신을 켰습니다. 일반 플레이어에게 보이지 않습니다.'
+vanish-off: '&a은신을 해제했습니다.'
+visibility-status: '&a내 이름 숨김 설정 &7| 탭 목록: &f%tab% &7/ 머리 위 이름: &f%name% &7(ON: 숨김, OFF: 표시)'
+visibility-unavailable: '&c이름 숨김에는 PacketEvents 2.14.0 이상이 필요합니다.'
+teleport-success: '&a%player% 관련 이동을 완료했습니다.'
+
+inventory-edit-open: '&a%player%의 편집 창을 열었습니다. &7좌/우클릭으로 수정하며 변경 즉시 반영·저장합니다.'
+inventory-view-open: '&a%player%의 조회 전용 창을 열었습니다.'
+inventory-login-locked: '&e관리자가 인벤토리를 편집 중입니다. 잠시 후 다시 접속해 주세요.'
+
 broadcast-format: '&6[공지] &f%message%'
-chatlog-header: '&7─── 최근 채팅 기록 (클릭하여 삭제) ───'
-chatlog-footer: '&7· &c[X]&7 단건 삭제 · 닉네임 클릭: 해당 유저 전체 삭제'
-chatlog-empty: '&7최근 채팅 기록이 없습니다.'
-deletechat-one: '&a#%id% 메시지를 최근 기록에서 삭제했습니다.'
-deletechat-player: '&a%player%의 최근 채팅 기록 %count%개를 삭제했습니다.'
-deletechat-not-found: '&c대상 채팅 기록을 찾지 못했습니다.'
+chatlog-header: '&7─── 최근 채팅 (메모리 보관) ───'
+chatlog-footer: '&7[X]: 단건 삭제 / 닉네임: 해당 유저 채팅 삭제'
+chatlog-empty: '&7최근 채팅이 없습니다.'
+deletechat-not-found: '&c대상 채팅을 찾지 못했습니다.'
+unsigned-delete-note: '&e서명 없는 메시지는 최근 목록에서만 제거할 수 있습니다. 필요하면 /admin clearchat을 사용하세요.'
 clearchat-message: '&a채팅창을 정리했습니다.'
