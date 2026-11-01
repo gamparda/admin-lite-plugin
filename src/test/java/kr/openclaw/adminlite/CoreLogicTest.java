@@ -45,15 +45,15 @@ class CoreLogicTest {
         assertNull(new ActiveState(temporary.resolve("active.yml")).mute(uuid));
     }
 
-    @Test void unreadableStateFailsInsteadOfSilentlyLosingCurrentSanctions() throws Exception {
+    @Test void unreadableStateBecomesAnEmptyState() throws Exception {
         Path file = temporary.resolve("active.yml");
         Files.writeString(file, "mutes: [broken\n");
-        assertThrows(Exception.class, () -> new ActiveState(file));
+        var reset=new ActiveState(file);assertTrue(reset.mutes.isEmpty());assertTrue(reset.frozen.isEmpty());
     }
 
     @Test void failedStateWriteRevertsInMemoryMute() throws Exception {
         Path file = temporary.resolve("active.yml"); ActiveState state = new ActiveState(file);
-        Files.createDirectory(file); UUID uuid = UUID.randomUUID();
+        Files.delete(file); Files.createDirectory(file); UUID uuid = UUID.randomUUID();
         assertThrows(Exception.class, () -> state.setMute(uuid, new ActiveState.Mute("Player", "test", 0)));
         assertNull(state.mute(uuid));
     }

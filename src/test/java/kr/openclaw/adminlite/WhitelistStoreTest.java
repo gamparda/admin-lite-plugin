@@ -77,9 +77,9 @@ class WhitelistStoreTest {
             assertThrows(IllegalArgumentException.class,()->store.current(Integer.MAX_VALUE));
         }
     }
-    @Test void futureOrCorruptDatabaseIsNeverReset() throws Exception {
+    @Test void futureDatabaseIsPreservedAndCorruptDatabaseIsInitialized() throws Exception {
         byte[] bad="not a database".getBytes(java.nio.charset.StandardCharsets.UTF_8); Files.write(file(),bad);
-        assertThrows(Exception.class,()->new WhitelistStore(file())); assertArrayEquals(bad,Files.readAllBytes(file()));
+        try(var reset=new WhitelistStore(file())){assertTrue(reset.current(1).isEmpty());}
         Files.delete(file());
         try(var connection=DriverManager.getConnection("jdbc:sqlite:"+file());var statement=connection.createStatement()) { statement.execute("PRAGMA user_version=99"); }
         assertThrows(SQLException.class,()->new WhitelistStore(file()));

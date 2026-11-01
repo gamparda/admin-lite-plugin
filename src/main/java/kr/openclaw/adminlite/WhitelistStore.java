@@ -13,9 +13,11 @@ final class WhitelistStore implements AutoCloseable {
     record Actor(UUID uuid, String name) { Actor { if (name == null || name.isBlank()) throw new IllegalArgumentException("등록자가 없습니다."); } }
     record Entry(long id, Identity player, String chzzk, boolean added, Instant at, ZoneId zone, Actor actor, boolean applied) {}
     private final Connection connection;
-    WhitelistStore(Path file) throws Exception {
+    WhitelistStore(Path file) throws Exception {this(file,s->{});}
+    WhitelistStore(Path file,java.util.function.Consumer<String> warning) throws Exception {
         Files.createDirectories(file.toAbsolutePath().getParent());
         Class.forName("org.sqlite.JDBC");
+        prepareDatabase(file,warning);
         connection = DriverManager.getConnection("jdbc:sqlite:" + file.toAbsolutePath());
         try (var statement = connection.createStatement()) {
             statement.execute("PRAGMA busy_timeout=2500"); statement.execute("PRAGMA synchronous=FULL");
@@ -101,4 +103,19 @@ final class WhitelistStore implements AutoCloseable {
                 new Actor(actor==null?null:UUID.fromString(actor),result.getString("actor_name")),result.getBoolean("applied"));
     }
     @Override public synchronized void close() throws SQLException { connection.close(); }
+    private static final class FutureDatabaseVersion extends SQLException {FutureDatabaseVersion(int version){super("지원하지 않는 whitelist.db 버전: "+version);}}
+    private static void prepareDatabase(Path file,java.util.function.Consumer<String> warning)throws Exception {
+        if(!Files.exists(file)||Files.size(file)==0)return;
+        try(var db=DriverManager.getConnection("jdbc:sqlite:"+file.toAbsolutePath());var statement=db.createStatement()) {
+            int version;
+            try(var result=statement.executeQuery("PRAGMA user_version")){if(!result.next())throw new SQLException("DB 버전 없음");version=result.getInt(1);}
+            if(version!=0&&version!=1)throw new FutureDatabaseVersion(version);
+            try(var result=statement.executeQuery("PRAGMA quick_check")){if(!result.next()||!"ok".equals(result.getString(1)))throw new SQLException("DB 무결성 오류");}
+            if(version==1)try(var result=statement.executeQuery("SELECT * FROM whitelist_events")){while(result.next())read(result);}
+            return;
+        }catch(FutureDatabaseVersion e){throw e;}catch(Exception ignored){}
+        // Reset this logical database only; never touch native whitelist.json or other plugin state.
+        for(String suffix:java.util.List.of("-journal","-wal","-shm"))Files.deleteIfExists(file.resolveSibling(file.getFileName()+suffix));
+        Files.write(file,new byte[0]);warning.accept("화이트리스트 기록 DB를 기본 상태로 초기화했습니다: "+file);
+    }
 }

@@ -1,4 +1,5 @@
 package kr.openclaw.adminlite;
+import kr.openclaw.adminlite.recovery.RecoveryYaml;
 
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,8 +21,8 @@ final class StaffTools implements Listener {
     StaffTools(AdminLitePlugin plugin) throws Exception {
         this.plugin = plugin;
         file = plugin.getDataFolder().toPath().resolve("recovery.yml");
-        if (Files.exists(file)) {
-            YamlConfiguration yaml = new YamlConfiguration(); yaml.load(file.toFile());
+        {
+            YamlConfiguration yaml=RecoveryYaml.data(file,StaffTools::normalize,plugin.getLogger()::warning);
             for (String id : yaml.getKeys(false)) {
                 Location location = yaml.getLocation(id + ".location");
                 if (location == null || location.getWorld() == null) throw new IllegalStateException("관전 복귀 월드를 찾을 수 없습니다: " + id);
@@ -140,4 +141,16 @@ final class StaffTools implements Listener {
         });
         AtomicFiles.text(file, yaml.saveToString());
     }
+    private static boolean normalize(YamlConfiguration yaml) {
+        String before=yaml.saveToString();
+        for(String key:List.copyOf(yaml.getKeys(false))) {
+            if(!RecoveryYaml.uuid(key)){yaml.set(key,null);continue;}
+            Location location=null;try{location=yaml.getLocation(key+".location");}catch(Exception ignored){}
+            if(location==null||location.getWorld()==null)yaml.set(key+".location",Bukkit.getWorlds().getFirst().getSpawnLocation());
+            try{GameMode.valueOf(yaml.getString(key+".mode",""));}catch(IllegalArgumentException e){yaml.set(key+".mode","SURVIVAL");}
+            for(String field:List.of("allow-flight","flying"))if(!(yaml.get(key+"."+field) instanceof Boolean))yaml.set(key+"."+field,false);
+        }
+        return !before.equals(yaml.saveToString());
+    }
+
 }

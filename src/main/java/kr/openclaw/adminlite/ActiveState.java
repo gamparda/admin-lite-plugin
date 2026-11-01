@@ -1,4 +1,5 @@
 package kr.openclaw.adminlite;
+import kr.openclaw.adminlite.recovery.RecoveryYaml;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.nio.file.*;
@@ -16,9 +17,7 @@ final class ActiveState {
 
     ActiveState(Path file) throws Exception {
         this.file = file;
-        if (!Files.exists(file)) return;
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.load(file.toFile());
+        YamlConfiguration yaml=RecoveryYaml.data(file,ActiveState::normalize);
         var section = yaml.getConfigurationSection("mutes");
         if (section != null) for (String key : section.getKeys(false)) {
             UUID uuid = UUID.fromString(key);
@@ -69,4 +68,20 @@ final class ActiveState {
         yaml.set("frozen", frozen.stream().map(UUID::toString).sorted().toList());
         AtomicFiles.text(file, yaml.saveToString());
     }
+    private static boolean normalize(YamlConfiguration yaml) {
+        String before=yaml.saveToString();Object raw=yaml.get("mutes");
+        if(raw!=null&&!yaml.isConfigurationSection("mutes"))yaml.set("mutes",null);
+        var mutes=yaml.getConfigurationSection("mutes");
+        if(mutes!=null)for(String key:List.copyOf(mutes.getKeys(false))) {
+            if(!RecoveryYaml.uuid(key)){mutes.set(key,null);continue;}
+            if(!mutes.isConfigurationSection(key)){mutes.set(key,null);mutes.createSection(key);}
+            var entry=mutes.getConfigurationSection(key);
+            if(!(entry.get("until") instanceof Number)||entry.getLong("until")<0)entry.set("until",0L);
+            if(!(entry.get("name") instanceof String))entry.set("name",key);
+            if(!(entry.get("reason") instanceof String))entry.set("reason","복구된 제재 기록");
+        }
+        var frozen=new LinkedHashSet<String>();for(String key:yaml.getStringList("frozen"))if(RecoveryYaml.uuid(key))frozen.add(key);
+        yaml.set("frozen",new ArrayList<>(frozen));return !before.equals(yaml.saveToString());
+    }
+
 }

@@ -1,4 +1,5 @@
 package kr.openclaw.adminlite;
+import kr.openclaw.adminlite.recovery.RecoveryYaml;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +22,6 @@ final class AtomicFiles {
     }
 
     static void text(Path target, String text) throws IOException {
-        write(target, text.getBytes(StandardCharsets.UTF_8));
+        RecoveryYaml.write(target,text);
     }
 }

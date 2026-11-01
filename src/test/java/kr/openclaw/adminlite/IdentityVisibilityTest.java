@@ -100,7 +100,7 @@ class IdentityVisibilityTest {
     }
     @Test void failedSaveRollsBackActivePreferences() throws Exception {
         Path file = directory.resolve("occupied"); var settings = new VisibilitySettings(file);
-        Files.createDirectories(file); Files.writeString(file.resolve("child"), "prevent replacing nonempty directory");
+        Files.delete(file); Files.createDirectories(file); Files.writeString(file.resolve("child"), "prevent replacing nonempty directory");
         assertThrows(Exception.class, () -> settings.set(admin, new VisibilitySettings.Flags(true, true)));
         assertEquals(VisibilitySettings.Flags.VISIBLE, settings.get(admin));
     }

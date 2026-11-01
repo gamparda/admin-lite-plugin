@@ -1,4 +1,5 @@
 package kr.openclaw.adminlite;
+import kr.openclaw.adminlite.recovery.RecoveryYaml;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.nio.file.*;
@@ -14,8 +15,7 @@ final class VisibilitySettings {
     private final Map<UUID, Flags> values = new HashMap<>();
     VisibilitySettings(Path file) throws Exception {
         this.file = file;
-        if (!Files.exists(file)) return;
-        var yaml = new YamlConfiguration(); yaml.load(file.toFile());
+        var yaml=RecoveryYaml.data(file,VisibilitySettings::normalize);
         for (String key : yaml.getKeys(false)) {
             Flags flags = new Flags(yaml.getBoolean(key + ".hide-tab"), yaml.getBoolean(key + ".hide-name"));
             if (flags.any()) values.put(UUID.fromString(key), flags);
@@ -37,4 +37,14 @@ final class VisibilitySettings {
             default -> throw new IllegalArgumentException("on, off 또는 toggle을 입력하세요.");
         };
     }
+    private static boolean normalize(YamlConfiguration yaml) {
+        String before=yaml.saveToString();
+        for(String key:List.copyOf(yaml.getKeys(false))) {
+            if(!RecoveryYaml.uuid(key)){yaml.set(key,null);continue;}
+            if(!yaml.isConfigurationSection(key)){yaml.set(key,null);yaml.createSection(key);}
+            for(String field:List.of("hide-tab","hide-name"))if(!(yaml.get(key+"."+field) instanceof Boolean))yaml.set(key+"."+field,true);
+        }
+        return !before.equals(yaml.saveToString());
+    }
+
 }

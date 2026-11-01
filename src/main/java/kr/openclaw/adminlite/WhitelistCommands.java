@@ -35,7 +35,7 @@ final class WhitelistCommands implements TabExecutor, BasicCommand, AutoCloseabl
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS,event ->
                 event.registrar().register("whitelist","Register whitelist entries with a required CHZZK nickname",List.of("minecraft:whitelist"),this));
         try {
-            store=new WhitelistStore(plugin.getDataFolder().toPath().resolve("whitelist.db"));
+            store=new WhitelistStore(plugin.getDataFolder().toPath().resolve("whitelist.db"),plugin.getLogger()::warning);
             service=new WhitelistService(store,(identity,added) -> {
                 OfflinePlayer player=offline(identity); player.setWhitelisted(added);
                 if(player.isWhitelisted()!=added) throw new IllegalStateException("서버 화이트리스트 반영에 실패했습니다.");

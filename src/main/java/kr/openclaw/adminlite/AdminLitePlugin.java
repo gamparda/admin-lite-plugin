@@ -1,5 +1,7 @@
 package kr.openclaw.adminlite;
 
+import kr.openclaw.adminlite.recovery.RecoveryYaml;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
@@ -30,7 +32,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
     @Override public void onEnable() {
         try {
             if (getServer().getPluginManager().getPlugin("InvSee") != null) throw new IllegalStateException("기존 InvSee JAR를 plugins 폴더 밖으로 옮긴 뒤 시작하세요. AdminLite 2에 통합되어 있습니다.");
-            saveDefaultConfig(); loadSettings();
+            RecoveryYaml.config(this); saveDefaultConfig(); loadSettings();
             var berryNames = getServer().getPluginManager().getPlugin("BerryNames");
             if (berryNames != null && berryNames.isEnabled()) {
                 try { names = BerryNamesHook.connect(this); }
@@ -50,7 +52,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
                     for (UUID uuid : state.expire()) { Player player = Bukkit.getPlayer(uuid); if (player != null) tell(player, "mute-off"); }
                 } catch (Exception e) { getLogger().log(Level.SEVERE, "현재 제재 상태 저장 실패", e); }
             }, 20, 20);
-            getLogger().info("AdminLite 2.3.0 enabled (Paper 26.3 build 206). Whitelist registration database; BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
+            getLogger().info("AdminLite 2.3.1 enabled (Paper 26.3 build 206). Whitelist registration database; BerryNames integration; identity visibility " + (visibility.available() ? "available." : "requires PacketEvents."));
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "AdminLite 시작 실패", e);
             getServer().getPluginManager().disablePlugin(this);
@@ -67,7 +69,7 @@ public final class AdminLitePlugin extends org.bukkit.plugin.java.JavaPlugin imp
     }
 
     private void loadSettings() {
-        reloadConfig();
+        RecoveryYaml.config(this); reloadConfig();
         Map<String, String> loaded = new HashMap<>();
         Set<String> keys = new HashSet<>(getConfig().getKeys(true));
         if (getConfig().getDefaults() != null) keys.addAll(getConfig().getDefaults().getKeys(true));
