@@ -1,6 +1,12 @@
 param([string]$BerryNamesJar)
 $ErrorActionPreference = 'Stop'
-$compilerPath = (Get-Command javac.exe -ErrorAction Stop).Source
+# The javac on PATH may be Oracle's javapath launcher, whose folder is not a JDK. Ask java for its real home instead.
+function Resolve-Javac {
+    $javaHome = (cmd /c "java -XshowSettings:properties -version 2>&1" | Where-Object { $_ -match '^\s*java\.home = ' } | Select-Object -First 1) -replace '^\s*java\.home = ', ''
+    if ($javaHome) { $real = Join-Path $javaHome.Trim() 'bin\javac.exe'; if (Test-Path $real) { return $real } }
+    return (Get-Command javac.exe -ErrorAction Stop | Select-Object -First 1).Source
+}
+$compilerPath = Resolve-Javac
 $compilerVersion = & $compilerPath -version 2>&1
 if ("$compilerVersion" -notmatch '^javac 25\.') {
     throw 'Java 25 JDK가 필요합니다. Java 25의 bin 폴더가 PATH에 있는지 확인하세요.'
