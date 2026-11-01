@@ -8,7 +8,7 @@ final class AdminTargets {
     private static final Map<String, Target> TARGETS = targets();
     static Target target(String sub) { return TARGETS.get(sub.toLowerCase(Locale.ROOT)); }
     static boolean reserved(String sub) {
-        return target(sub) != null || Set.of("players", "vanish", "visibility", "hidetab", "hidename", "hideidentity", "broadcast", "bc", "chatlog", "clearchat", "reload", "help").contains(sub.toLowerCase(Locale.ROOT));
+        return target(sub) != null || Set.of("players", "vanish", "visibility", "hidetab", "hidename", "hideidentity", "broadcast", "bc", "chatlog", "clearchat", "backup", "reload", "help").contains(sub.toLowerCase(Locale.ROOT));
     }
     private static Map<String, Target> targets() {
         var values = new HashMap<String, Target>();

@@ -1,5 +1,5 @@
 name: AdminLite
-version: 2.3.2
+version: 2.3.3
 main: kr.openclaw.adminlite.AdminLitePlugin
 api-version: '26.3'
 author: OpenClaw
@@ -62,6 +62,9 @@ permissions:
   adminlite.clearchat:
     default: op
   adminlite.reload:
+    default: op
+  adminlite.backup:
+    description: Run /admin backup.
     default: op
   adminlite.alerts:
     description: Receive alerts when a banned account or IP is refused at login.

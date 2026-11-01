@@ -5,6 +5,10 @@ op-only: true
 whitelist:
   time-zone: Asia/Seoul
 
+# /admin backup: backups/ 폴더에 남길 최근 백업 개수. 오래된 것부터 지웁니다.
+backup:
+  keep: 10
+
 features:
   gui: true
   player-info: true
