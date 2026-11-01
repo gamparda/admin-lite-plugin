@@ -109,6 +109,7 @@ final class WhitelistCommands implements TabExecutor, BasicCommand, AutoCloseabl
         plugin.checkPermission(sender,"whitelist");
         var entry=service.add(identity,nickname,actor(sender),zone);
         tell(sender,"화이트리스트 등록 완료: "+identity.account()+" · 치지직: "+entry.chzzk()); row(sender,entry);
+        if(plugin.alerts!=null) plugin.alerts.whitelisted(sender,offline(identity),identity.account());
     }
     private void resolveNew(CommandSender sender,String name,String nickname) throws Exception {
         if(!name.matches("[A-Za-z0-9_]{1,16}")) throw new IllegalArgumentException("처음 등록하는 이용자는 마인크래프트 실제 ID를 입력하세요.");
