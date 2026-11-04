@@ -17,6 +17,8 @@ final class StaffTools implements Listener {
     private final Map<UUID, Origin> origins = new HashMap<>();
     private final Set<UUID> vanished = new HashSet<>();
     private final Set<UUID> allowedTeleports = new HashSet<>();
+    private static final long FREEZE_NOTICE_MILLIS = 3000;
+    private final Map<UUID, Long> freezeNotices = new HashMap<>();
 
     StaffTools(AdminLitePlugin plugin) throws Exception {
         this.plugin = plugin;
@@ -90,6 +92,7 @@ final class StaffTools implements Listener {
     @EventHandler(priority = EventPriority.LOWEST) public void quit(PlayerQuitEvent event) {
         recover(event.getPlayer());
         vanished.remove(event.getPlayer().getUniqueId());
+        freezeNotices.remove(event.getPlayer().getUniqueId());
         for (Player viewer : Bukkit.getOnlinePlayers()) viewer.showPlayer(plugin, event.getPlayer());
     }
 
@@ -102,6 +105,12 @@ final class StaffTools implements Listener {
         if (!plugin.state.frozen.contains(event.getPlayer().getUniqueId()) || !event.hasChangedPosition()) return;
         Location back = event.getFrom().clone(); back.setYaw(event.getTo().getYaw()); back.setPitch(event.getTo().getPitch());
         event.setTo(back); event.getPlayer().setFallDistance(0);
+        long now = System.currentTimeMillis();
+        Long last = freezeNotices.get(event.getPlayer().getUniqueId());
+        if (last == null || now - last >= FREEZE_NOTICE_MILLIS) {
+            freezeNotices.put(event.getPlayer().getUniqueId(), now);
+            plugin.tell(event.getPlayer(), "freeze-deny-message");
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true) public void teleport(PlayerTeleportEvent event) {
